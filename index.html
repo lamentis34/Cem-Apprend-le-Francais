@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cem Apprend le Français</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127467;&#127479;</text></svg>" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; background: #10141F; }
+  * { box-sizing: border-box; }
+  #err { color:#E05561; font-family:monospace; padding:20px; white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script id="jsx-source" type="text/plain">const { useState, useEffect, useRef, useMemo } = React;
+
+/* ─────────────────────────────────────────────────────────
+   MON ÉTÉ FRANÇAIS — Jul 6 → Aug 26, 2026 · dark edition
+   Exact page-by-page plan for Alter Ego+ A1 livre + cahier
+   ───────────────────────────────────────────────────────── */
+
+const BG = "#10141F";
+const CARD = "#1A2130";
+const CARD2 = "#151B28";
+const LINE = "#2A3350";
+const TXT = "#E8ECF5";
+const FADE = "#8A94AD";
+const BLEU = "#6B8AFF";
+const ROUGE = "#E05561";
+const VERT = "#4CAF88";
+const OR = "#D4A83C";
+
+const DISPLAY = '"Times New Roman", Times, serif';
+const BODY = 'Calibri, "Segoe UI", -apple-system, sans-serif';
+
+/* ── the exact plan ───────────────────────────────────────
+   livre / cahier = inclusive page ranges for that day.
+   kind: study | half | consol | bilan | off | finish     */
+const PLAN = {
+  "2026-07-06": { d: 0, livre: [14, 19], cahier: [4, 5], kind: "study" },
+  "2026-07-07": { d: 0, livre: [20, 24], cahier: [6, 7], kind: "study" },
+  "2026-07-08": { d: 1, livre: [25, 32], cahier: [8, 11], kind: "study" },
+  "2026-07-09": { kind: "off" },
+  "2026-07-10": { d: 1, livre: [33, 36], cahier: [12, 13], kind: "half" },
+  "2026-07-11": { d: 1, livre: [37, 40], cahier: [14, 15], kind: "half" },
+  "2026-07-12": { d: 1, livre: [41, 42], cahier: [16, 19], kind: "half" },
+  "2026-07-13": { d: 2, livre: [43, 46], cahier: [20, 21], kind: "half" },
+  "2026-07-14": { d: 2, livre: [47, 50], cahier: [22, 23], kind: "half" },
+  "2026-07-15": { kind: "off" },
+  "2026-07-16": { d: 2, livre: [51, 55], cahier: [24, 27], kind: "study" },
+  "2026-07-17": { d: 2, livre: [56, 60], cahier: [28, 31], kind: "study" },
+  "2026-07-18": { d: 3, livre: [61, 66], cahier: [32, 35], kind: "study" },
+  "2026-07-19": { d: 3, livre: [67, 72], cahier: [36, 39], kind: "study" },
+  "2026-07-20": { d: 3, livre: [73, 78], cahier: [40, 43], kind: "study" },
+  "2026-07-21": { d: 4, livre: [79, 84], cahier: [44, 47], kind: "study" },
+  "2026-07-22": { d: 4, livre: [85, 90], cahier: [48, 52], kind: "study" },
+  "2026-07-23": { d: 4, livre: [91, 96], cahier: [53, 56], kind: "study" },
+  "2026-07-24": { d: 5, livre: [97, 100], cahier: [57, 58], kind: "study" },
+  "2026-07-25": { d: 5, livre: [101, 104], cahier: [59, 60], kind: "study" },
+  "2026-07-26": { d: 5, livre: [105, 108], cahier: [61, 62], kind: "study" },
+  "2026-07-27": { d: 5, livre: [109, 111], cahier: [63, 65], kind: "study" },
+  "2026-07-28": { d: 5, livre: [112, 114], cahier: [66, 68], kind: "study" },
+  "2026-07-29": { d: 6, livre: [115, 118], cahier: [69, 70], kind: "study" },
+  "2026-07-30": { d: 6, livre: [119, 122], cahier: [71, 72], kind: "study" },
+  "2026-07-31": { d: 6, livre: [123, 126], cahier: [73, 74], kind: "study" },
+  "2026-08-01": { d: 6, livre: [127, 130], cahier: [75, 77], kind: "study" },
+  "2026-08-02": { d: 6, livre: [131, 134], cahier: [78, 80], kind: "study" },
+  "2026-08-03": { d: 7, livre: [135, 138], cahier: [81, 82], kind: "study" },
+  "2026-08-04": { d: 7, livre: [139, 142], cahier: [83, 84], kind: "study" },
+  "2026-08-05": { d: 7, livre: [143, 146], cahier: [85, 86], kind: "study" },
+  "2026-08-06": { d: 7, livre: [147, 149], cahier: [87, 89], kind: "study" },
+  "2026-08-07": { d: 7, livre: [150, 152], cahier: [90, 92], kind: "study" },
+  "2026-08-08": { kind: "consol", label: "Consolidation — Dossiers 5–7" },
+  "2026-08-09": { kind: "consol", label: "Consolidation — Dossiers 5–7" },
+  "2026-08-10": { kind: "off" },
+  "2026-08-11": { d: 8, livre: [153, 156], cahier: [93, 94], kind: "study" },
+  "2026-08-12": { d: 8, livre: [157, 160], cahier: [95, 96], kind: "study" },
+  "2026-08-13": { d: 8, livre: [161, 164], cahier: [97, 98], kind: "study" },
+  "2026-08-14": { d: 8, livre: [165, 167], cahier: [99, 101], kind: "study" },
+  "2026-08-15": { d: 8, livre: [168, 170], cahier: [102, 104], kind: "study" },
+  "2026-08-16": { kind: "consol", label: "Consolidation — Dossier 8" },
+  "2026-08-17": { d: 9, livre: [171, 174], cahier: [105, 106], kind: "study" },
+  "2026-08-18": { d: 9, livre: [175, 178], cahier: [107, 108], kind: "study" },
+  "2026-08-19": { d: 9, livre: [179, 182], cahier: [109, 110], kind: "study" },
+  "2026-08-20": { d: 9, livre: [183, 185], cahier: [111, 113], kind: "study" },
+  "2026-08-21": { d: 9, livre: [186, 188], cahier: [114, 116], kind: "study" },
+  "2026-08-22": { kind: "consol", label: "Revision — Dossiers 8–9" },
+  "2026-08-23": { kind: "consol", label: "Full revision & catch-up" },
+  "2026-08-24": { kind: "bilan" },
+  "2026-08-25": { kind: "bilan" },
+  "2026-08-26": { kind: "finish" },
+};
+
+const DOSSIERS = [
+  { d: 0, title: "Dossier 0 · Découverte", livre: [14, 24], cahier: [4, 7], days: "Jul 6–7 (2 days)", note: "Alphabet, greetings, numbers, classroom French — pure warm-up review." },
+  { d: 1, title: "Dossier 1 · Les uns, les autres", livre: [25, 42], cahier: [8, 19], days: "Jul 8–12 (4 days)", note: "Introducing yourself: s'appeler, être, avoir, nationalities. You know this — move fast." },
+  { d: 2, title: "Dossier 2 · Ici, ailleurs", livre: [43, 60], cahier: [20, 31], days: "Jul 13–17 (4 days)", note: "The city, il y a, prepositions of place, asking your way. Review." },
+  { d: 3, title: "Dossier 3 · Dis-moi qui tu es", livre: [61, 78], cahier: [32, 43], days: "Jul 18–20 (3 days)", note: "Likes & activities, -er verbs, faire/aller, professions, describing people. Review." },
+  { d: 4, title: "Dossier 4 · À chacun son rythme", livre: [79, 96], cahier: [44, 56], days: "Jul 21–23 (3 days)", note: "Time, daily routine, pronominal verbs, devoir/il faut. Your most recent lesson material." },
+  { d: 5, title: "Dossier 5 · Temps forts", livre: [97, 114], cahier: [57, 68], days: "Jul 24–28 (5 days)", note: "NEW: holidays & rituals, phone calls, plans (futur proche), imperative. Bring questions to your tutor." },
+  { d: 6, title: "Dossier 6", livre: [115, 134], cahier: [69, 80], days: "Jul 29 – Aug 2 (5 days)", note: "NEW — the longest dossier (20 livre pages). Lean on your tutor for the grammar points." },
+  { d: 7, title: "Dossier 7", livre: [135, 152], cahier: [81, 92], days: "Aug 3–7 (5 days)", note: "NEW: food, taste, gifts — partitive articles live here. High-value vocabulary." },
+  { d: 8, title: "Dossier 8", livre: [153, 170], cahier: [93, 104], days: "Aug 11–15 (5 days)", note: "NEW. Two consolidation days protect you before this one starts." },
+  { d: 9, title: "Dossier 9", livre: [171, 188], cahier: [105, 116], days: "Aug 17–21 (5 days)", note: "NEW — the summit. Finish here and the whole book is done with 5 days to spare." },
+];
+
+const WEEKS = [
+  { n: 1, start: "2026-07-06", end: "2026-07-12", title: "Week 1 · Dossiers 0–1 (review)", focus: ["Livre p.14–42 + cahier p.4–19 — filling the empty pages fast", "Jul 9 fully off · Jul 10–12 are light half days", "Grammar: s'appeler, être, avoir, articles, nationalities"] },
+  { n: 2, start: "2026-07-13", end: "2026-07-19", title: "Week 2 · Dossiers 2–3 (review)", focus: ["Livre p.43–72 + cahier p.20–39", "Jul 13–14 half days · Jul 15 fully off", "Grammar: il y a, place prepositions, -er verbs, faire/aller"] },
+  { n: 3, start: "2026-07-20", end: "2026-07-26", title: "Week 3 · Dossiers 3 → 5", focus: ["Finish D3 (Mon), D4 in 3 days, start D5 — first NEW material Friday", "Livre p.73–108 + cahier p.40–62", "Grammar: routine & pronominal verbs, then fêtes + futur proche"] },
+  { n: 4, start: "2026-07-27", end: "2026-08-02", title: "Week 4 · Dossiers 5 → 6", focus: ["Finish D5 (Tue), then D6 — the book's longest dossier", "Livre p.109–134 + cahier p.63–80", "New grammar all week: flag anything unclear for your tutor"] },
+  { n: 5, start: "2026-08-03", end: "2026-08-09", title: "Week 5 · Dossier 7 + consolidation", focus: ["D7 Mon–Fri: livre p.135–152 + cahier p.81–92 (food & partitifs)", "Sat–Sun: consolidation of D5–D7 — redo errors, no new pages", "This buffer is what makes the whole plan survivable"] },
+  { n: 6, start: "2026-08-10", end: "2026-08-16", title: "Week 6 · Dossier 8", focus: ["Mon Aug 10 fully off, then D8 Tue–Sat: livre p.153–170 + cahier p.93–104", "Sunday: consolidation of D8", "Passé composé territory — give it extra speaking practice"] },
+  { n: 7, start: "2026-08-17", end: "2026-08-23", title: "Week 7 · Dossier 9 + revision", focus: ["D9 Mon–Fri: livre p.171–188 + cahier p.105–116 — the final dossier", "Sat–Sun: revision of D8–D9 and catch-up on any gaps", "By Friday Aug 21 both books are 100% done"] },
+  { n: 8, start: "2026-08-24", end: "2026-08-26", title: "Week 8 · Final assessment", focus: ["Mon–Tue: DELF A1-style mock test + cahier portfolio (p.117)", "Wed Aug 26: nothing — le programme est terminé 🎓"] },
+];
+
+/* ── date helpers ─────────────────────────────────────── */
+const toKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const fromKey = (k) => { const [y, m, d] = k.split("-").map(Number); return new Date(y, m - 1, d); };
+const DOW = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const MON = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const enDate = (k) => { const d = fromKey(k); return `${DOW[d.getDay()]}, ${MON[d.getMonth()]} ${d.getDate()}`; };
+const shortDate = (k) => { const d = fromKey(k); return `${MON[d.getMonth()].slice(0, 3)} ${d.getDate()}`; };
+
+const ALL_DAYS = Object.keys(PLAN).sort();
+
+/* ── task generation ──────────────────────────────────── */
+function tasksForDay(key, lessonOn) {
+  const p = PLAN[key];
+  if (!p || p.kind === "off" || p.kind === "finish") return [];
+  const dow = fromKey(key).getDay();
+  const T = [];
+  if (lessonOn) T.push({ id: "cours", label: "Private lesson day", min: 10, skill: "grammar", detail: "After class, reread today's notes for 10 min. Skipping the livre pages today is fine — shift them to the weekend." });
+
+  T.push({ id: "pimsleur", label: "Pimsleur — one full lesson", min: 30, skill: "listening", detail: "Speak every answer out loud. Repeat a lesson rather than moving on shaky." });
+
+  if (p.kind === "study" || p.kind === "half") {
+    T.push({ id: "livre", label: `Livre — Dossier ${p.d}, p. ${p.livre[0]}–${p.livre[1]}`, min: p.kind === "half" ? 30 : 55, skill: "grammar", detail: p.d <= 4 ? "Review material — move fast, slow down only where you hesitate." : "New material — read every document aloud before doing the exercises." });
+    T.push({ id: "cahier", label: `Cahier — Dossier ${p.d}, p. ${p.cahier[0]}–${p.cahier[1]}`, min: p.kind === "half" ? 15 : 30, skill: "grammar", detail: "These pages mirror today's livre pages. Correct yourself with the corrigés if you have them." });
+  }
+
+  if (p.kind === "consol") {
+    T.push({ id: "errors", label: `${p.label}: redo every wrong answer`, min: 45, skill: "grammar", detail: "Reopen the livre & cahier pages from this block. Redo the exercises you missed, cold, without looking first." });
+    T.push({ id: "vocab", label: "Vocabulary sweep", min: 20, skill: "writing", detail: "Write the block's new words once each (FR → TR), then cover and recall. Keep a running list." });
+    T.push({ id: "lecture", label: "Voyage au centre de la Terre", min: 20, skill: "reading", detail: "Catch up or reread this week's extract. Retell it aloud in 3–4 French sentences." });
+    return T;
+  }
+
+  if (p.kind === "bilan") {
+    T.push({ id: "bilan", label: "DELF A1 mock — one full section", min: 45, skill: "grammar", detail: key.endsWith("24") ? "Compréhension écrite + compréhension orale (search: DELF A1 exemple de sujet)." : "Production écrite + production orale — write the letter task, record the monologue." });
+    T.push({ id: "portfolio", label: "Cahier portfolio, p. 117 + gap cleanup", min: 30, skill: "writing", detail: "Fill the self-assessment portfolio, then close any pages flagged in your Progress tab." });
+    return T;
+  }
+
+  if (p.kind === "half") return T; // Pimsleur + the two page tasks only
+
+  // full study day extras
+  if (dow === 0) T.push({ id: "review", label: "Week review — redo this week's mistakes", min: 20, skill: "grammar", detail: "Reopen every exercise you got wrong this week and redo it without looking." });
+  if ([1, 3, 5].includes(dow)) T.push({ id: "journal", label: "Journal — 5–7 sentences in French", min: 15, skill: "writing", detail: "About your day, using this dossier's grammar. Save the best errors for your tutor." });
+  else T.push({ id: "lecture", label: "Voyage au centre de la Terre", min: 15, skill: "reading", detail: "This week's extract from your tutor. Note 5 new words in the margin." });
+  return T;
+}
+
+const SKILLS = {
+  listening: { label: "Listening", color: BLEU },
+  reading: { label: "Reading", color: VERT },
+  writing: { label: "Writing", color: OR },
+  grammar: { label: "Grammar & books", color: "#A9B7DE" },
+};
+
+const STORAGE_KEY = "mon-ete-francais-v2";
+
+/* ── atoms ────────────────────────────────────────────── */
+function Bar({ pct, color, h = 8 }) {
+  return (
+    <div style={{ background: "#232C42", borderRadius: h, height: h, overflow: "hidden" }}>
+      <div style={{ width: `${Math.min(100, pct)}%`, height: "100%", background: color, borderRadius: h, transition: "width .4s ease" }} />
+    </div>
+  );
+}
+function Check({ on, onClick }) {
+  return (
+    <button onClick={onClick} aria-label={on ? "Mark not done" : "Mark done"}
+      style={{ width: 22, height: 22, minWidth: 22, borderRadius: 5, cursor: "pointer", border: `2px solid ${on ? VERT : "#3A4562"}`, background: on ? VERT : "transparent", color: "#0F1420", fontSize: 14, lineHeight: "18px", fontWeight: 700, padding: 0, marginTop: 2 }}>
+      {on ? "✓" : ""}
+    </button>
+  );
+}
+
+/* ── day card ─────────────────────────────────────────── */
+function DayCard({ dayKey, todayKey, state, toggleTask, toggleLesson }) {
+  const p = PLAN[dayKey];
+  const isToday = dayKey === todayKey;
+  const isPast = dayKey < todayKey;
+  const lessonOn = !!state.lessonDays[dayKey];
+  const tasks = useMemo(() => tasksForDay(dayKey, lessonOn), [dayKey, lessonOn]);
+  const checks = state.checks[dayKey] || {};
+  const done = tasks.filter((t) => checks[t.id]).length;
+  const [open, setOpen] = useState(isToday);
+  const totalMin = tasks.reduce((a, t) => a + t.min, 0);
+
+  const badge =
+    p.kind === "off" ? { txt: "Rest day", bg: "#232C42", fg: FADE } :
+    p.kind === "finish" ? { txt: "Program complete 🎓", bg: "#3A2230", fg: ROUGE } :
+    p.kind === "half" ? { txt: `Half day · ~${totalMin} min`, bg: "#33290F", fg: OR } :
+    p.kind === "consol" ? { txt: `Consolidation · ~${totalMin} min`, bg: "#14301F", fg: VERT } :
+    p.kind === "bilan" ? { txt: `Final test · ~${totalMin} min`, bg: "#3A2230", fg: "#F08A93" } :
+    { txt: `Dossier ${p.d} · ~${totalMin} min`, bg: "#1D2A4A", fg: BLEU };
+
+  return (
+    <div style={{ background: CARD, borderRadius: 10, marginBottom: 10, position: "relative", border: `1px solid ${isToday ? BLEU : LINE}`, boxShadow: isToday ? "0 2px 14px rgba(107,138,255,.18)" : "none", overflow: "hidden" }}>
+      <div style={{ position: "absolute", top: 0, bottom: 0, left: 34, width: 1.5, background: ROUGE, opacity: 0.5 }} />
+      <div onClick={() => setOpen((o) => !o)} style={{ padding: "12px 14px 12px 48px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <div style={{ flex: 1, minWidth: 150 }}>
+          <div style={{ fontFamily: DISPLAY, fontSize: 17, color: TXT }}>
+            {enDate(dayKey)}
+            {isToday && <span style={{ fontFamily: BODY, fontSize: 11, color: "#0F1420", background: BLEU, padding: "2px 8px", borderRadius: 10, marginLeft: 8, fontWeight: 700, verticalAlign: 2 }}>TODAY</span>}
+          </div>
+          {tasks.length > 0 && (
+            <div style={{ fontSize: 12.5, color: done === tasks.length ? VERT : isPast && done < tasks.length ? ROUGE : FADE, marginTop: 2 }}>
+              {done}/{tasks.length} done{done === tasks.length ? " ✓" : isPast ? " · behind" : ""}
+            </div>
+          )}
+        </div>
+        <span style={{ fontSize: 11.5, fontWeight: 700, background: badge.bg, color: badge.fg, padding: "3px 10px", borderRadius: 12 }}>{badge.txt}</span>
+        {tasks.length > 0 && <span style={{ color: FADE, fontSize: 12 }}>{open ? "▲" : "▼"}</span>}
+      </div>
+
+      {open && tasks.length > 0 && (
+        <div style={{ padding: "0 14px 12px 48px" }}>
+          {tasks.map((t) => (
+            <div key={t.id} style={{ display: "flex", gap: 10, padding: "8px 0", borderTop: `1px solid ${LINE}` }}>
+              <Check on={!!checks[t.id]} onClick={() => toggleTask(dayKey, t.id)} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14.5, color: checks[t.id] ? FADE : TXT, textDecoration: checks[t.id] ? "line-through" : "none", fontWeight: 600 }}>
+                  {t.label} <span style={{ fontSize: 11.5, color: SKILLS[t.skill].color, fontWeight: 700 }}>· {SKILLS[t.skill].label}</span>
+                </div>
+                <div style={{ fontSize: 12.5, color: FADE, marginTop: 2 }}>{t.detail}</div>
+              </div>
+              <span style={{ fontSize: 11.5, color: FADE, whiteSpace: "nowrap" }}>{t.min}′</span>
+            </div>
+          ))}
+          <label style={{ fontSize: 12.5, color: TXT, display: "flex", alignItems: "center", gap: 6, cursor: "pointer", marginTop: 8 }}>
+            <input type="checkbox" checked={lessonOn} onChange={() => toggleLesson(dayKey)} />
+            Private lesson today
+          </label>
+        </div>
+      )}
+      {open && tasks.length === 0 && (
+        <div style={{ padding: "0 14px 12px 48px", fontSize: 13, color: FADE, fontStyle: "italic" }}>
+          {p.kind === "finish" ? "August 26 — nothing to do but be proud. Le programme est terminé." : "Full rest. Your brain consolidates while you do nothing."}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── app ──────────────────────────────────────────────── */
+function App() {
+  const [state, setState] = useState({ checks: {}, lessonDays: {} });
+  const [loaded, setLoaded] = useState(false);
+  const [tab, setTab] = useState("week");
+  const [weekView, setWeekView] = useState(null);
+  const saveTimer = useRef(null);
+
+  const todayKey = toKey(new Date());
+  const currentWeek = (WEEKS.find((w) => todayKey >= w.start && todayKey <= w.end) || (todayKey < "2026-07-06" ? WEEKS[0] : WEEKS[7])).n;
+  const shownWeek = weekView ?? currentWeek;
+
+  useEffect(() => {
+    try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) setState(JSON.parse(raw)); }
+    catch (e) { /* first run */ }
+    setLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!loaded) return;
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { console.error("save failed", e); }
+    }, 400);
+    return () => clearTimeout(saveTimer.current);
+  }, [state, loaded]);
+
+  const toggleTask = (dk, tid) => setState((s) => ({ ...s, checks: { ...s.checks, [dk]: { ...(s.checks[dk] || {}), [tid]: !(s.checks[dk] || {})[tid] } } }));
+  const toggleLesson = (dk) => setState((s) => ({ ...s, lessonDays: { ...s.lessonDays, [dk]: !s.lessonDays[dk] } }));
+
+  const stats = useMemo(() => {
+    let total = 0, done = 0, dueTotal = 0, dueDone = 0;
+    const bySkill = {}; Object.keys(SKILLS).forEach((k) => (bySkill[k] = { t: 0, d: 0 }));
+    const byWeek = WEEKS.map(() => ({ t: 0, d: 0 }));
+    const byDossier = DOSSIERS.map(() => ({ t: 0, d: 0, lastKey: null }));
+    const behind = [];
+    let streak = 0, alive = true;
+
+    for (const key of [...ALL_DAYS].reverse()) {
+      const ts = tasksForDay(key, !!state.lessonDays[key]);
+      if (!ts.length || key > todayKey) continue;
+      const ch = state.checks[key] || {};
+      const any = ts.some((t) => ch[t.id]);
+      if (key === todayKey) { if (any) streak++; continue; }
+      if (alive && any) streak++;
+      else if (alive) alive = false;
+    }
+
+    for (const key of ALL_DAYS) {
+      const p = PLAN[key];
+      const ts = tasksForDay(key, !!state.lessonDays[key]);
+      const ch = state.checks[key] || {};
+      const wk = WEEKS.find((w) => key >= w.start && key <= w.end);
+      let dayDone = 0;
+      for (const t of ts) {
+        total++; bySkill[t.skill].t++; if (wk) byWeek[wk.n - 1].t++;
+        const isPage = t.id === "livre" || t.id === "cahier";
+        if (isPage && p.d !== undefined) { byDossier[p.d].t++; byDossier[p.d].lastKey = key; }
+        if (ch[t.id]) { done++; dayDone++; bySkill[t.skill].d++; if (wk) byWeek[wk.n - 1].d++; if (isPage && p.d !== undefined) byDossier[p.d].d++; }
+      }
+      if (key <= todayKey && ts.length) { dueTotal += ts.length; dueDone += dayDone; if (key < todayKey && dayDone < ts.length) behind.push({ key, missing: ts.length - dayDone }); }
+    }
+    return { total, done, dueTotal, dueDone, bySkill, byWeek, byDossier, behind, streak };
+  }, [state, todayKey]);
+
+  const pace = stats.dueTotal ? Math.round((stats.dueDone / stats.dueTotal) * 100) : 100;
+  const overall = stats.total ? Math.round((stats.done / stats.total) * 100) : 0;
+
+  const tabs = [
+    { id: "week", label: "This Week" },
+    { id: "dossiers", label: "Dossiers" },
+    { id: "plan", label: "Full Plan" },
+    { id: "progress", label: "Progress" },
+    { id: "guide", label: "Guide" },
+  ];
+
+  const wk = WEEKS[shownWeek - 1];
+  const wkDays = ALL_DAYS.filter((k) => k >= wk.start && k <= wk.end);
+
+  return (
+    <div style={{ minHeight: "100vh", background: BG, fontFamily: BODY, color: TXT, backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent 31px, ${LINE}55 31px, ${LINE}55 32px)` }}>
+      <div style={{ maxWidth: 780, margin: "0 auto", padding: "20px 14px 60px" }}>
+
+        <header style={{ marginBottom: 18, borderBottom: `2px solid ${LINE}`, paddingBottom: 14 }}>
+          <div style={{ fontSize: 11, letterSpacing: 2.5, color: ROUGE, fontWeight: 700 }}>JULY 6 — AUGUST 26, 2026</div>
+          <h1 style={{ fontFamily: DISPLAY, fontSize: 34, margin: "4px 0 2px", fontWeight: 400, fontStyle: "italic", color: TXT }}>Mon Été Français</h1>
+          <div style={{ fontSize: 13.5, color: FADE }}>Alter Ego+ A1 livre & cahier finished in parallel · Pimsleur daily · Jules Verne · 2–3 h a day.</div>
+          <div style={{ display: "flex", gap: 18, marginTop: 12, flexWrap: "wrap" }}>
+            <div style={{ flex: 1, minWidth: 180 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, marginBottom: 4 }}>
+                <span style={{ fontWeight: 700 }}>On pace (due so far)</span><span style={{ color: pace >= 80 ? VERT : pace >= 50 ? OR : ROUGE, fontWeight: 700 }}>{pace}%</span>
+              </div>
+              <Bar pct={pace} color={pace >= 80 ? VERT : pace >= 50 ? OR : ROUGE} />
+            </div>
+            <div style={{ flex: 1, minWidth: 180 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, marginBottom: 4 }}>
+                <span style={{ fontWeight: 700 }}>Whole summer</span><span style={{ color: BLEU, fontWeight: 700 }}>{overall}%</span>
+              </div>
+              <Bar pct={overall} color={BLEU} />
+            </div>
+            <div style={{ textAlign: "center", minWidth: 64 }}>
+              <div style={{ fontFamily: DISPLAY, fontSize: 26, color: ROUGE }}>{stats.streak}</div>
+              <div style={{ fontSize: 10, letterSpacing: 1, color: FADE }}>DAY STREAK</div>
+            </div>
+          </div>
+        </header>
+
+        <nav style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
+          {tabs.map((t) => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              style={{ padding: "7px 15px", borderRadius: 18, fontSize: 13.5, fontWeight: 700, cursor: "pointer", fontFamily: BODY, border: `1.5px solid ${tab === t.id ? BLEU : LINE}`, background: tab === t.id ? BLEU : "transparent", color: tab === t.id ? "#0F1420" : TXT }}>
+              {t.label}
+            </button>
+          ))}
+        </nav>
+
+        {/* THIS WEEK */}
+        {tab === "week" && (
+          <>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+              <button onClick={() => setWeekView(Math.max(1, shownWeek - 1))} disabled={shownWeek === 1} style={navBtn(shownWeek === 1)}>‹</button>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: DISPLAY, fontSize: 20, fontStyle: "italic" }}>{wk.title}</div>
+                <div style={{ fontSize: 12.5, color: FADE }}>{shortDate(wk.start)} → {shortDate(wk.end)}</div>
+              </div>
+              <button onClick={() => setWeekView(Math.min(8, shownWeek + 1))} disabled={shownWeek === 8} style={navBtn(shownWeek === 8)}>›</button>
+            </div>
+            <div style={{ background: CARD2, border: `1px solid ${LINE}`, borderRadius: 10, padding: "10px 14px", marginBottom: 14 }}>
+              <div style={{ fontSize: 11, letterSpacing: 1.5, color: ROUGE, fontWeight: 700, marginBottom: 6 }}>WEEK FOCUS</div>
+              {wk.focus.map((f, i) => <div key={i} style={{ fontSize: 13.5, padding: "3px 0" }}>— {f}</div>)}
+            </div>
+            {wkDays.map((k) => <DayCard key={k} dayKey={k} todayKey={todayKey} state={state} toggleTask={toggleTask} toggleLesson={toggleLesson} />)}
+          </>
+        )}
+
+        {/* DOSSIERS */}
+        {tab === "dossiers" && DOSSIERS.map((D) => {
+          const b = stats.byDossier[D.d];
+          const pct = b.t ? Math.round((b.d / b.t) * 100) : 0;
+          const doneAll = b.t > 0 && b.d === b.t;
+          return (
+            <div key={D.d} style={{ background: CARD, border: `1px solid ${doneAll ? VERT : LINE}`, borderRadius: 10, padding: "13px 16px", marginBottom: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 6 }}>
+                <div style={{ fontFamily: DISPLAY, fontSize: 17, fontStyle: "italic" }}>{D.title} {doneAll && <span style={{ color: VERT, fontFamily: BODY, fontSize: 13 }}>✓ done</span>}</div>
+                <span style={{ fontSize: 12, color: OR, fontWeight: 700 }}>{D.days}</span>
+              </div>
+              <div style={{ fontSize: 12.5, color: FADE, margin: "3px 0 8px" }}>
+                Livre p. {D.livre[0]}–{D.livre[1]} ({D.livre[1] - D.livre[0] + 1} pp) · Cahier p. {D.cahier[0]}–{D.cahier[1]} ({D.cahier[1] - D.cahier[0] + 1} pp)
+              </div>
+              <Bar pct={pct} color={doneAll ? VERT : BLEU} h={7} />
+              <div style={{ fontSize: 12, color: FADE, marginTop: 6 }}>{b.d}/{b.t} page-sessions done · {D.note}</div>
+            </div>
+          );
+        })}
+
+        {/* FULL PLAN */}
+        {tab === "plan" && WEEKS.map((w, i) => {
+          const bw = stats.byWeek[i];
+          const pct = bw.t ? Math.round((bw.d / bw.t) * 100) : 0;
+          const isCur = w.n === currentWeek;
+          return (
+            <div key={w.n} onClick={() => { setWeekView(w.n); setTab("week"); }}
+              style={{ background: CARD, border: `1px solid ${isCur ? BLEU : LINE}`, borderRadius: 10, padding: "12px 16px", marginBottom: 10, cursor: "pointer" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+                <div style={{ fontFamily: DISPLAY, fontSize: 17, fontStyle: "italic" }}>
+                  {w.title} {isCur && <span style={{ fontFamily: BODY, fontStyle: "normal", fontSize: 10, color: "#0F1420", background: BLEU, padding: "2px 7px", borderRadius: 9, marginLeft: 4, fontWeight: 700 }}>NOW</span>}
+                </div>
+                <span style={{ fontSize: 12, color: FADE }}>{shortDate(w.start)} → {shortDate(w.end)}</span>
+              </div>
+              <div style={{ margin: "8px 0 4px" }}><Bar pct={pct} color={pct === 100 ? VERT : BLEU} h={6} /></div>
+              <div style={{ fontSize: 11.5, color: FADE }}>{bw.d}/{bw.t} tasks · {pct}%</div>
+            </div>
+          );
+        })}
+
+        {/* PROGRESS */}
+        {tab === "progress" && (
+          <>
+            <div style={{ background: CARD, border: `1px solid ${LINE}`, borderRadius: 10, padding: 16, marginBottom: 12 }}>
+              <div style={{ fontSize: 11, letterSpacing: 1.5, color: ROUGE, fontWeight: 700, marginBottom: 10 }}>SKILL BALANCE</div>
+              {Object.entries(SKILLS).map(([k, s]) => {
+                const b = stats.bySkill[k]; const pct = b.t ? Math.round((b.d / b.t) * 100) : 0;
+                return (
+                  <div key={k} style={{ marginBottom: 10 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, marginBottom: 3 }}>
+                      <span style={{ fontWeight: 700 }}>{s.label}</span>
+                      <span style={{ color: s.color, fontWeight: 700 }}>{b.d}/{b.t} · {pct}%</span>
+                    </div>
+                    <Bar pct={pct} color={s.color} h={7} />
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ background: CARD, border: `1px solid ${LINE}`, borderRadius: 10, padding: 16, marginBottom: 12 }}>
+              <div style={{ fontSize: 11, letterSpacing: 1.5, color: ROUGE, fontWeight: 700, marginBottom: 10 }}>DAYS WITH GAPS</div>
+              {stats.behind.length === 0 ? (
+                <div style={{ fontSize: 13.5, color: VERT }}>Nothing to catch up. You're fully on track ✓</div>
+              ) : (
+                stats.behind.slice(-14).map((b) => (
+                  <div key={b.key} style={{ display: "flex", justifyContent: "space-between", fontSize: 13.5, padding: "5px 0", borderBottom: `1px solid ${LINE}` }}>
+                    <span>{enDate(b.key)}</span>
+                    <span style={{ color: ROUGE, fontWeight: 700 }}>{b.missing} left</span>
+                  </div>
+                ))
+              )}
+              {stats.behind.length > 0 && (
+                <div style={{ fontSize: 12.5, color: FADE, marginTop: 8 }}>Catch up <b>livre/cahier pages first</b> (they're the backbone of the plan) — let old Pimsleur days go.</div>
+              )}
+            </div>
+
+            <div style={{ background: CARD, border: `1px solid ${LINE}`, borderRadius: 10, padding: 16 }}>
+              <div style={{ fontSize: 11, letterSpacing: 1.5, color: ROUGE, fontWeight: 700, marginBottom: 10 }}>WEEK BY WEEK</div>
+              {WEEKS.map((w, i) => {
+                const b = stats.byWeek[i]; const pct = b.t ? Math.round((b.d / b.t) * 100) : 0;
+                return (
+                  <div key={w.n} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                    <span style={{ fontFamily: DISPLAY, fontStyle: "italic", width: 30, fontSize: 15 }}>W{w.n}</span>
+                    <div style={{ flex: 1 }}><Bar pct={pct} color={pct === 100 ? VERT : w.n < currentWeek ? ROUGE : BLEU} h={7} /></div>
+                    <span style={{ fontSize: 11.5, color: FADE, width: 36, textAlign: "right" }}>{pct}%</span>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {/* GUIDE */}
+        {tab === "guide" && (
+          <div style={{ background: CARD, border: `1px solid ${LINE}`, borderRadius: 10, padding: "18px 20px", fontSize: 14.5, lineHeight: 1.65 }}>
+            <h2 style={gh}>How the page math works</h2>
+            <p style={{ marginTop: 0 }}>Both books together are 288 pages (livre p.14–188, cahier p.4–116). Spread over your 43 full study days that's a very comfortable load: review dossiers (0–4) run at ~10 combined pages a day, new dossiers (5–9) at ~6–7, always both books in sync so the cahier exercises land the same day as their livre lesson. Every day card shows the exact pages — no guessing.</p>
+            <h2 style={gh}>Why the buffers exist</h2>
+            <p>Aug 8–9, Aug 16 and Aug 22–23 have <b>no new pages</b>. They're consolidation days: redoing errors, vocabulary sweeps, catching up anything you missed. If life happens and you fall behind, these five days absorb it — the plan doesn't collapse.</p>
+            <h2 style={gh}>Your 2–3 hours</h2>
+            <p>Full study days total roughly 2–2.5 hours. If you have energy left, the best uses in order: a second Pimsleur lesson, extra Jules Verne pages, or rewriting your journal entry without looking at the first version.</p>
+            <h2 style={gh}>Lesson days</h2>
+            <p>Tick <b>"Private lesson today"</b> on the card whenever you have class. It adds a 10-minute notes-review task, and it's fine to shift that day's livre pages to the weekend — the lesson replaces them.</p>
+            <h2 style={gh}>Key dates</h2>
+            <p>Book fully finished: <b>Friday, August 21</b>. Mock DELF A1: Aug 24–25. Rest days protected: Jul 9, Jul 15, Aug 10. Half days: Jul 10–14. <span style={{ color: BLEU, fontStyle: "italic" }}>« Petit à petit, l'oiseau fait son nid. »</span></p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const gh = { fontFamily: DISPLAY, fontStyle: "italic", fontWeight: 400, fontSize: 19, color: TXT, borderBottom: `1px solid ${LINE}`, paddingBottom: 4, marginTop: 20 };
+const navBtn = (dis) => ({ width: 34, height: 34, borderRadius: 17, border: `1.5px solid ${dis ? LINE : BLEU}`, background: "transparent", color: dis ? "#3A4562" : BLEU, fontSize: 18, cursor: dis ? "default" : "pointer" });
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+<script>
+  (function () {
+    try {
+      var code = document.getElementById("jsx-source").textContent;
+      var out = Babel.transform(code, {
+        presets: [["react", { runtime: "classic" }]],
+        sourceType: "script"
+      }).code;
+      // run the compiled JS
+      (0, eval)(out);
+    } catch (e) {
+      document.getElementById("root").innerHTML =
+        '<div id=err>Bir hata olustu:\n' + (e && e.message ? e.message : e) + '</div>';
+      console.error(e);
+    }
+  })();
+</script>
+</body>
+</html>
